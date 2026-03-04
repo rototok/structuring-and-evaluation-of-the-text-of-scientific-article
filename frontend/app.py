@@ -1,8 +1,9 @@
 from io import BytesIO
 import os
 import requests
-import streamlit as st
 import time
+
+import streamlit as st
 
 
 # url is taken from docker-compose.yml
@@ -50,7 +51,7 @@ def analyze_file(uploaded_file, module):
        data = response.json()
       
        st.session_state.task_id = data["task_id"]
-       st.session_state.status = "PENDING"
+       st.session_state.status = data["status"]
        st.session_state.running = True
 
        st.info(f"Task submitted. Task_id: {st.session_state.task_id}")
@@ -102,7 +103,7 @@ if st.session_state.running:
     st.info(st.session_state.status)
 
     # there is no built-in autorefresh in streamlit
-    time.sleep(1)
+    time.sleep(3)
     st.rerun()
 
 if st.session_state.result:

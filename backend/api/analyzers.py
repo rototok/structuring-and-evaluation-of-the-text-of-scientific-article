@@ -1,3 +1,7 @@
+import os
+import shutil
+import uuid
+
 from celery.result import AsyncResult
 from fastapi import APIRouter, UploadFile
 
@@ -5,9 +9,9 @@ from app.schemas import (
     AnalysisModule,
     AnalyzeResponse,
     TaskStatusResponse,
-    TaskResultResponce
+    TaskResultResponce,
+    TaskStatus
 )
-
 from app.tasks import analyze_task
 from app.celery_app import celery
 
@@ -17,14 +21,20 @@ router = APIRouter()
 
 @router.post(path="/analyzers/{module}", status_code=202, tags=["Analyzer Module"])
 async def analyze_file(module: AnalysisModule, file: UploadFile):
-    # TODO: creation of task_id and sending task to the celery
-    
-    celery_task = analyze_task.delay(module.value, file.filename)
+    id = str(uuid.uuid4())
+    folder_path = f"/tmp/{id}"
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, file.filename)
+
+    with open(file_path, 'wb') as save_file:
+        shutil.copyfileobj(file.file, save_file)
+
+    celery_task = analyze_task.delay(module.value, file_path)
     
     return AnalyzeResponse(
         task_id=celery_task.id,
         module=module,
-        filename=file.filename,
+        filename=file_path,
         message="Task accepted"
     )
 
@@ -36,7 +46,7 @@ def get_task_status(task_id: str):
 
     return TaskStatusResponse(
         task_id=task_result.task_id,
-        status=task_result.status
+        status=TaskStatus(task_result.status)
     )
 
 
