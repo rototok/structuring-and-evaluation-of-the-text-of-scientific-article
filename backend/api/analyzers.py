@@ -1,13 +1,15 @@
-import time
-import uuid
+from celery.result import AsyncResult
 from fastapi import APIRouter, UploadFile
-from ..schemas import (
+
+from app.schemas import (
     AnalysisModule,
-    TaskStatus,
     AnalyzeResponse,
     TaskStatusResponse,
     TaskResultResponce
 )
+
+from app.tasks import analyze_task
+from app.celery_app import celery
 
 
 router = APIRouter()
@@ -16,10 +18,11 @@ router = APIRouter()
 @router.post(path="/analyzers/{module}", status_code=202, tags=["Analyzer Module"])
 async def analyze_file(module: AnalysisModule, file: UploadFile):
     # TODO: creation of task_id and sending task to the celery
-    task_id = str(uuid.uuid4())
+    
+    celery_task = analyze_task.delay(module.value, file.filename)
     
     return AnalyzeResponse(
-        task_id=task_id,
+        task_id=celery_task.id,
         module=module,
         filename=file.filename,
         message="Task accepted"
@@ -29,18 +32,23 @@ async def analyze_file(module: AnalysisModule, file: UploadFile):
 @router.get(path="/status/{task_id}", status_code=200, tags=["Task"])
 def get_task_status(task_id: str):
     # TODO: checking task status in celery
-    time.sleep(3)
+    task_result = AsyncResult(task_id, app=celery)
+
     return TaskStatusResponse(
-        task_id=task_id,
-        status="SUCCESS"
+        task_id=task_result.task_id,
+        status=task_result.status
     )
 
 
 @router.get(path="/result/{task_id}", status_code=200, tags=["Task"])
 def get_task_result(task_id: str):
     # TODO: getting result from celery
-    time.sleep(1)
+    task_result = AsyncResult(task_id, app=celery)
+
     return TaskResultResponce(
-        task_id=task_id,
-        result="Result of the task is here"
+        task_id=task_result.task_id,
+        result=task_result.result
     )
+
+if __name__ == "__main__":
+    pass

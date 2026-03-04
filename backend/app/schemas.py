@@ -9,8 +9,8 @@ class AnalysisModule(str, Enum):
 
 
 class TaskStatus(str, Enum):
-    PENDING = "PENDING"
     STARTED = "STARTED"
+    PENDING = "PENDING"
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
 

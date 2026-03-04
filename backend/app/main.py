@@ -1,4 +1,4 @@
-from .api import analyzers
+from api import analyzers
 from fastapi import FastAPI
 
 

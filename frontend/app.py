@@ -67,18 +67,17 @@ def check_status():
            )
          
        status_data = status_response.json()
-       status = status_data["status"]
-         
-       if status == "SUCCESS":
+       st.session_state.status = status_data["status"]
+
+       if st.session_state.status == "SUCCESS":
           result_response = requests.get(
                f"{BACKEND_URL}/result/{st.session_state.task_id}",
                timeout=30 # TODO: calculate necessary timeout
                )
           st.session_state.result = result_response.json()["result"]
-          st.session_state.status = status
           st.session_state.running = False
 
-       elif status == "FAILURE":
+       elif st.session_state.status == "FAILURE":
           st.error("Task failed")
 
     except Exception as e:
