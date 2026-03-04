@@ -6,9 +6,7 @@ Stack:
 - **Task Queue Manager**: celery, redis
 
 Build project:
-'''
-docker compose up --build
-'''
+'docker compose up --build'
 
 After the successfull building of project go to http://localhost:8501/
 
