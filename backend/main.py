@@ -1,5 +1,4 @@
 from .api import analyzers
-
 from fastapi import FastAPI
 
 
@@ -9,6 +8,7 @@ app = FastAPI(
     version="0.1.0"
 )
 
+# including end-points from analyzers
 app.include_router(analyzers.router)
 
 @app.get("/", tags=["Health"])
