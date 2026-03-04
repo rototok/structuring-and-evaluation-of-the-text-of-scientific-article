@@ -5,74 +5,83 @@ import streamlit as st
 import time
 
 
-# url подтягивается из docker-compose.yml
+# url is taken from docker-compose.yml
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 
-# так как streamlit перезапускает скрипт после каждого действия пользователя,
-# отрисовать все в колбэке по нажатию кнопку не представляется возможным
-# именно для того, чтобы всё корректно и вовремя отражалось, нужны стейты сессии
-if "task_id" not in st.session_state: # id таски в celery
+# session states are necessary to render data correctly 
+# since the streamlit rerun the script each time user interact with the UI
+
+# task id in celery
+if "task_id" not in st.session_state: 
     st.session_state.task_id = None
 
-if "status" not in st.session_state: # статус таски в celery
+# task status in celery
+if "status" not in st.session_state:
     st.session_state.status = None
 
-if "running" not in st.session_state: # флаг, отражающий необходимость ожидания ответа от celery
+# flag; waiting response from celery
+if "running" not in st.session_state:
     st.session_state.running = False
 
-if "result" not in st.session_state: # ответ от бэка для отображения на странице
+# result from back to show on page
+if "result" not in st.session_state: 
     st.session_state.result = None
 
 
-# кол-бэк для кнопок, который отправляет запрос по API
+# button callback to send request
 def analyze_file(uploaded_file, module):
     bytes_io = BytesIO(uploaded_file.getvalue())
 
-    # так как мы уже считали файл, подаем его в формате (название, данные в байтах, тип файла (application/type))
+    # formatting file as (file name, bytes, application/type)
     files = {"file": (uploaded_file.name, bytes_io, uploaded_file.type)}
 
-    response = requests.post(
-         f"{BACKEND_URL}/analyzers/{module}",
-         files=files,
-         timeout=30
-    ) 
+    try:
+       response = requests.post(
+            f"{BACKEND_URL}/analyzers/{module}",
+            files=files,
+            timeout=30 # TODO: calculate necessary timeout
+       ) 
 
-    if response.status_code != 202:
-         st.error(f"Error: {response.text}")
-         return
-    
-    data = response.json()
-    
-    st.session_state.task_id = data["task_id"]
-    st.session_state.status = "PENDING"
-    st.session_state.running = True
+       if response.status_code != 202:
+            st.error(f"Error: {response.text}")
+            return
+      
+       data = response.json()
+      
+       st.session_state.task_id = data["task_id"]
+       st.session_state.status = "PENDING"
+       st.session_state.running = True
 
-    st.info(f"Task submitted. Task_id: {st.session_state.task_id}")
+       st.info(f"Task submitted. Task_id: {st.session_state.task_id}")
+       
+    except Exception as e:
+       st.error(f"Connection error: {e}")
 
 
-# функция для проверки статуса задачи
-# как только получили ответ от бэка - меняем статус
 def check_status():
-    status_response = requests.get(
-         f"{BACKEND_URL}/status/{st.session_state.task_id}",
-         timeout=10
-         )
-       
-    status_data = status_response.json()
-    status = status_data["status"]
-       
-    if status == "SUCCESS":
-       result_response = requests.get(
-            f"{BACKEND_URL}/result/{st.session_state.task_id}",
-            timeout=30
-            )
-       st.session_state.result = result_response.json()["result"]
-       st.session_state.status = status
-       st.session_state.running = False
+    try:
+       status_response = requests.get(
+           f"{BACKEND_URL}/status/{st.session_state.task_id}",
+           timeout=10 # TODO: calculate necessary timeout
+           )
+         
+       status_data = status_response.json()
+       st.session_state.status = status_data["status"]
 
-    elif status == "FAILURE":
-       st.error("Task failed")
+       if st.session_state.status == "SUCCESS":
+          result_response = requests.get(
+               f"{BACKEND_URL}/result/{st.session_state.task_id}",
+               timeout=30 # TODO: calculate necessary timeout
+               )
+          st.session_state.result = result_response.json()["result"]
+          st.session_state.running = False
+
+       elif st.session_state.status == "FAILURE":
+          st.error("Task failed")
+
+    except Exception as e:
+        st.error(f"Connection error: {e}")
 
 
 st.title("AI Academic Writing Assistant")
@@ -88,11 +97,12 @@ if uploaded_file is not None:
 
 flex.divider()
 
-
 if st.session_state.running:
     check_status()
     st.info(st.session_state.status)
-    time.sleep(2)
+
+    # there is no built-in autorefresh in streamlit
+    time.sleep(1)
     st.rerun()
 
 if st.session_state.result:

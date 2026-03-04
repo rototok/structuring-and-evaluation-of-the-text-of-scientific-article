@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+
+  # ---------------------------
+  # Broker - Redis
+  # ---------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # ---------------------------
+  # Backend API - FastAPI
+  # ---------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/backend
+      - tmp_data:/tmp
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    restart: always
+
+  # ---------------------------
+  # Celery Worker
+  # ---------------------------
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    container_name: worker
+    volumes:
+      - ./backend:/backend
+      - tmp_data:/tmp
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    restart: always
+
+  # ---------------------------
+  # Frontend
+  # ---------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8000
+    restart: always
+
+volumes:
+  tmp_data:
