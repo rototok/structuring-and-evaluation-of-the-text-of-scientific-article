@@ -21,11 +21,9 @@ router = APIRouter()
 
 @router.post(path="/analyzers/{module}", status_code=202, tags=["Analyzer Module"])
 async def analyze_file(module: AnalysisModule, file: UploadFile):
-    id = str(uuid.uuid4())
-    folder_path = f"/tmp/{id}"
-    os.makedirs(folder_path, exist_ok=True)
+    # saving file
+    folder_path = "/tmp/"
     file_path = os.path.join(folder_path, file.filename)
-
     with open(file_path, 'wb') as save_file:
         shutil.copyfileobj(file.file, save_file)
 
@@ -35,6 +33,7 @@ async def analyze_file(module: AnalysisModule, file: UploadFile):
         task_id=celery_task.id,
         module=module,
         filename=file_path,
+        status=TaskStatus.STARTED,
         message="Task accepted"
     )
 
@@ -46,7 +45,7 @@ def get_task_status(task_id: str):
 
     return TaskStatusResponse(
         task_id=task_result.task_id,
-        status=TaskStatus(task_result.status)
+        status=TaskStatus(task_result.status) if task_result.status in TaskStatus.__members__ else TaskStatus.PENDING
     )
 
 
@@ -54,7 +53,7 @@ def get_task_status(task_id: str):
 def get_task_result(task_id: str):
     # TODO: getting result from celery
     task_result = AsyncResult(task_id, app=celery)
-
+    
     return TaskResultResponce(
         task_id=task_result.task_id,
         result=task_result.result

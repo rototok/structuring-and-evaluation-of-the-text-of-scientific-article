@@ -49,15 +49,13 @@ def analyze_file(uploaded_file, module):
             return
       
        data = response.json()
-      
        st.session_state.task_id = data["task_id"]
-       st.session_state.status = data["status"]
        st.session_state.running = True
 
-       st.info(f"Task submitted. Task_id: {st.session_state.task_id}")
+       st.info(f"Task submitted. Task id: {st.session_state.task_id}")
        
     except Exception as e:
-       st.error(f"Connection error: {e}")
+       st.error(f"ANALYZE_FILE. Connection error: {e}")
 
 
 def check_status():
@@ -82,7 +80,7 @@ def check_status():
           st.error("Task failed")
 
     except Exception as e:
-        st.error(f"Connection error: {e}")
+        st.error(f"CHECK_STATUS. Connection error: {e}")
 
 
 st.title("AI Academic Writing Assistant")

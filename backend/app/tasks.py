@@ -1,3 +1,4 @@
+import shutil
 import time
 
 from app.celery_app import celery

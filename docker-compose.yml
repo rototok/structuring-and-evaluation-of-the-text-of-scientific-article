@@ -41,7 +41,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: worker
     volumes:
-      - ./backend:/backend
+      - ./backend:/backend # TODO: убрать после окончания
       - tmp_data:/tmp
     depends_on:
       - redis
