@@ -1,6 +1,5 @@
 import os
 import shutil
-import uuid
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, UploadFile
@@ -21,7 +20,7 @@ router = APIRouter()
 
 @router.post(path="/analyzers/{module}", status_code=202, tags=["Analyzer Module"])
 async def analyze_file(module: AnalysisModule, file: UploadFile):
-    # saving file
+    # TODO: make file management smarter
     folder_path = "/tmp/"
     file_path = os.path.join(folder_path, file.filename)
     with open(file_path, 'wb') as save_file:
@@ -40,7 +39,6 @@ async def analyze_file(module: AnalysisModule, file: UploadFile):
 
 @router.get(path="/status/{task_id}", status_code=200, tags=["Task"])
 def get_task_status(task_id: str):
-    # TODO: checking task status in celery
     task_result = AsyncResult(task_id, app=celery)
 
     return TaskStatusResponse(
@@ -51,7 +49,6 @@ def get_task_status(task_id: str):
 
 @router.get(path="/result/{task_id}", status_code=200, tags=["Task"])
 def get_task_result(task_id: str):
-    # TODO: getting result from celery
     task_result = AsyncResult(task_id, app=celery)
     
     return TaskResultResponce(

@@ -106,4 +106,4 @@ if st.session_state.running:
 
 if st.session_state.result:
     flex.write("### Answer")
-    flex.write(st.session_state.result)
+    flex.text(st.session_state.result)

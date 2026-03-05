@@ -23,7 +23,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/backend
       - tmp_data:/tmp
     depends_on:
       - redis
@@ -41,7 +40,6 @@ services:
       dockerfile: Dockerfile.worker
     container_name: worker
     volumes:
-      - ./backend:/backend # TODO: убрать после окончания
       - tmp_data:/tmp
     depends_on:
       - redis
