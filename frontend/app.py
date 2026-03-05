@@ -1,8 +1,9 @@
 from io import BytesIO
 import os
 import requests
-import streamlit as st
 import time
+
+import streamlit as st
 
 
 # url is taken from docker-compose.yml
@@ -48,15 +49,13 @@ def analyze_file(uploaded_file, module):
             return
       
        data = response.json()
-      
        st.session_state.task_id = data["task_id"]
-       st.session_state.status = "PENDING"
        st.session_state.running = True
 
-       st.info(f"Task submitted. Task_id: {st.session_state.task_id}")
+       st.info(f"Task submitted. Task id: {st.session_state.task_id}")
        
     except Exception as e:
-       st.error(f"Connection error: {e}")
+       st.error(f"ANALYZE_FILE. Connection error: {e}")
 
 
 def check_status():
@@ -81,7 +80,7 @@ def check_status():
           st.error("Task failed")
 
     except Exception as e:
-        st.error(f"Connection error: {e}")
+        st.error(f"CHECK_STATUS. Connection error: {e}")
 
 
 st.title("AI Academic Writing Assistant")
@@ -102,9 +101,9 @@ if st.session_state.running:
     st.info(st.session_state.status)
 
     # there is no built-in autorefresh in streamlit
-    time.sleep(1)
+    time.sleep(3)
     st.rerun()
 
 if st.session_state.result:
     flex.write("### Answer")
-    flex.write(st.session_state.result)
+    flex.text(st.session_state.result)
