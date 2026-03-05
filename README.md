@@ -4,6 +4,7 @@ Stack:
 - **Frontend**: streamlit
 - **API**: FastAPI, uvicorn, pydantic
 - **Task Queue Manager**: celery, redis
+- **File parsing**: pymupdf4llm, chardet, python-docx
 
 Build project:  
 `docker-compose up --build`
