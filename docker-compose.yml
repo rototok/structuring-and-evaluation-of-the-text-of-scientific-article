@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   # ---------------------------
   # Broker - Redis
   # ---------------------------
@@ -41,11 +40,24 @@ services:
     container_name: worker
     volumes:
       - tmp_data:/tmp
+      # Mount the directory that contains the GGUF model file.
+      # The host path on the left must point to the folder where
+      # model.gguf actually lives on your machine.
+      - ./models:/backend/models:ro
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # Path inside the container (matches the volume mount above)
+      - LLM_MODEL_PATH=./models/yandex-gpt-lite-instruct/YandexGPT-5-Lite-8B-instruct-Q4_K_M.gguf
+      - LLM_N_CTX=8192
+      - LLM_N_THREADS=8
+      - LLM_N_GPU_LAYERS=0   # set to 35 (or more) to offload layers to GPU
+      - LLM_MAX_TOKENS=1500
+      - LLM_TEMPERATURE=0.15
+      - LLM_TOP_P=0.9
+      - LLM_REPEAT_PENALTY=1.1
     restart: always
 
   # ---------------------------
