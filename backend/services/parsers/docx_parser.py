@@ -59,10 +59,10 @@ class DocumentParser:
 
 
     def get_outline_level(self, paragraph) -> int | None:
-        outline_lvl = self.__get_outline_from_element(paragraph._element)
+        outline_lvl = self._get_outline_from_element(paragraph._element)
 
         if outline_lvl is None:
-            outline_lvl = self.__get_outline_from_style(paragraph.style)
+            outline_lvl = self._get_outline_from_style(paragraph.style)
         
         return outline_lvl
     
@@ -74,13 +74,13 @@ class DocumentParser:
 
         return font_sizes    
 
-    def __get_outline_from_style(self, style) -> int | None:
+    def _get_outline_from_style(self, style) -> int | None:
         visited = set()
 
         while style is not None and style.style_id not in visited:
             visited.add(style.style_id)
 
-            outline_lvl = self.__get_outline_from_element(style._element)
+            outline_lvl = self._get_outline_from_element(style._element)
             
             if outline_lvl is not None:
                 return outline_lvl
@@ -89,7 +89,7 @@ class DocumentParser:
 
         return None
 
-    def __get_outline_from_element(self, element) -> int | None:
+    def _get_outline_from_element(self, element) -> int | None:
         pPr = element.find(qn("w:pPr"))
         if pPr is None:
             return None
@@ -105,20 +105,20 @@ class DocumentParser:
 
 class DocumentAnalyzer:
     def __init__(self):
-        self.__font_size_counter = Counter()
-        self.__font_levels = dict()
+        self._font_size_counter = Counter()
+        self._font_levels = dict()
 
     @property
     def font_size_counter(self):
-        return self.__font_size_counter
+        return self._font_size_counter
     
     @property
     def font_levels(self):
-        return self.__font_levels
+        return self._font_levels
     
     @font_levels.setter
     def font_levels(self, font_levels):
-        self.__font_levels = font_levels
+        self._font_levels = font_levels
     
     def count_font_sizes(self, document_parser: DocumentParser) -> Counter:
         paragraphs = document_parser.get_paragraphs()
