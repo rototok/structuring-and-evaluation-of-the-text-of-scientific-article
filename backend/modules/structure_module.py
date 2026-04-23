@@ -63,10 +63,10 @@ def run(article_text: str) -> str:
     methods_result = analyze_methods(_section("methods"))
     logger.info("Methods analysis done.")
 
-    results_result = analyze_results(_section("results"))
+    results_result = analyze_results(_section("introduction"), _section("results"))
     logger.info("Results analysis done.")
 
-    discussion_result = analyze_discussion(_section("discussion"))
+    discussion_result = analyze_discussion(_section("introduction"), _section("discussion"))
     logger.info("Discussion analysis done.")
 
     # Step 3 — final summary
